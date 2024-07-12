@@ -24,4 +24,12 @@ public class DireccionEntity {
         this.numero=datosDireccion.numero();
         this.complemento=datosDireccion.complemento();
     }
+
+    public void actualizarInformacion(DatosDireccion direccion) {
+        this.calle=direccion.calle();
+        this.distrito=direccion.distrito();
+        this.ciudad=direccion.ciudad();
+        this.numero=direccion.numero();
+        this.complemento=direccion.complemento();
+    }
 }
