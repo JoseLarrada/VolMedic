@@ -13,8 +13,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,20 +32,26 @@ public class MedicoService {
     public Page<DatosListadoMedico> listadoMedicos(Pageable pageable){
         return medicoRepository.findAllByActivoTrue(pageable).map(DatosListadoMedico::new);
     }
-    public ResponseEntity<String> registrarMedico(DatoRegistroMedico datoRegistroMedico){
-        medicoRepository.save(new MedicoEntity(datoRegistroMedico));
-        return ResponseEntity.ok(datoRegistroMedico.toString());
+    public ResponseEntity<DatosListadoMedico> buscarPorId(Long id){
+        Optional<MedicoEntity> medico=medicoRepository.findById(id);
+        return ResponseEntity.ok(new DatosListadoMedico(medico.get()));
+    }
+    public ResponseEntity<DatosListadoMedico> registrarMedico(DatoRegistroMedico datoRegistroMedico,
+                                                  UriComponentsBuilder uriComponentsBuilder){
+        MedicoEntity medico=medicoRepository.save(new MedicoEntity(datoRegistroMedico));
+        URI url=uriComponentsBuilder.path("/medico/{id}").buildAndExpand(medico.getId()).toUri();
+        return ResponseEntity.created(url).body(new DatosListadoMedico(medico));
     }
     @Transactional
-    public ResponseEntity<String> modificarMedico(ActualizarMedico actualizarMedico){
+    public ResponseEntity<DatosListadoMedico> modificarMedico(ActualizarMedico actualizarMedico){
         MedicoEntity medico=medicoRepository.getReferenceById(actualizarMedico.id());
         medico.actualizarDatos(actualizarMedico);
-        return ResponseEntity.ok("Actualizado");
+        return ResponseEntity.ok(new DatosListadoMedico(medico));
     }
     @Transactional
     public ResponseEntity<String> eliminarMedico(Long id){
         MedicoEntity medico=medicoRepository.getReferenceById(id);
         medico.desactivarMedico();
-        return ResponseEntity.ok("Desactivado");
+        return ResponseEntity.notFound().build();
     }
 }
